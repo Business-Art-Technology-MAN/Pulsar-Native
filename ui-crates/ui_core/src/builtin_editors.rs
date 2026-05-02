@@ -105,5 +105,11 @@ pub fn register_all_builtin_editors(registry: &mut BuiltinEditorRegistry) {
     // Blueprint editor (compiled-in, no DLL boundary)
     registry.register_provider(Arc::new(BlueprintEditorBuiltinProvider));
 
+    #[cfg(feature = "marketlab")]
+    {
+        engine_backend::marketlab::otl_eval_dispatcher();
+        tracing::info!("Market Lab OTL eval dispatcher ready (FR-06; build with --features marketlab)");
+    }
+
     tracing::info!("Built-in editor registration complete");
 }

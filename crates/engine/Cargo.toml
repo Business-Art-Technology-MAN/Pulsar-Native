@@ -5,6 +5,11 @@ description = "A modern high-performance game engine written in Rust"
 publish = false
 version = "0.1.148"
 
+[features]
+default = []
+# FR-06 Phase D: OTL bridge (`pulsar_marketlab`) + warm eval worker when built-in editors register.
+marketlab = ["engine_backend/marketlab", "ui_core/marketlab"]
+
 [[bin]]
 name = "pulsar_engine"
 path = "src/main.rs"

@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[features]
+default = []
+# FR-06: enables `engine_backend/marketlab` (OTLP eval worker + Market Lab path deps).
+marketlab = ["engine_backend/marketlab"]
+
 [dependencies]
 # UI framework
 gpui-ce.workspace = true
