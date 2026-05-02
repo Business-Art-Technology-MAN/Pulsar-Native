@@ -6,9 +6,9 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::time::Instant;
 
 use helio::{
-    Camera, EditorState, GizmoMode, GpuLight, GpuMaterial, GroupMask, LightType, MaterialId,
+    Camera, EditorState, GizmoMode, GiConfig, GpuLight, GpuMaterial, GroupMask, LightType, MaterialId,
     MeshId, MeshUpload, Movability, ObjectDescriptor, ObjectId, PackedVertex, Renderer,
-    RendererConfig, SceneActor, ScenePicker, SkyActor,
+    RendererConfig, SceneActor, ScenePicker, ShadowQuality, SkyActor,
 };
 
 use crate::scene::{GizmoState, MeshType, ObjectType, SceneObjectSnapshot};
@@ -289,10 +289,16 @@ impl HelioRenderer {
             // Clone device/queue from GPUI's WgpuSurface
             let device_arc = Arc::new(_device.clone());
             let queue_arc = Arc::new(_queue.clone());
+            // Conservative defaults for laptops / iGPU and shared VRAM. Helio's shadow atlas +
+            // radiance cascades can exceed budget on some adapters (OOM at ShadowPass::new).
+            let config = RendererConfig::new(width, height, format)
+                .with_shadow_quality(ShadowQuality::Low)
+                .with_gi_config(GiConfig::ambient_only())
+                .with_render_scale(0.5);
             let mut r = Renderer::new_with_external_device(
                 device_arc.clone(),
                 queue_arc.clone(),
-                RendererConfig::new(width, height, format),
+                config,
             );
             r.set_editor_mode(true);
             r.set_clear_color([0.15, 0.18, 0.25, 1.0]);
