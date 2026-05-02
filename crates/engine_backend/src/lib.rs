@@ -5,6 +5,9 @@
 //! It is designed to be modular and extensible, allowing developers to
 //! build high-performance games with ease.
 
+#[cfg(feature = "marketlab")]
+pub use pulsar_marketlab as marketlab;
+
 pub mod scene;
 pub mod services;
 pub mod subsystems;

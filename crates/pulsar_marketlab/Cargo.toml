@@ -1,0 +1,13 @@
+[package]
+name = "pulsar_marketlab"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "OTL / Market Lab bridge: path deps into sibling MarketLabrs checkout (FR-06 Phase D)."
+
+[lints]
+workspace = true
+
+[dependencies]
+marketlab-pulsar-bridge = { path = "../../../../crates/marketlab-pulsar-bridge" }
+marketlab-otl = { path = "../../../../crates/marketlab-otl" }
