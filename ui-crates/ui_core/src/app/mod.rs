@@ -11,7 +11,10 @@ mod window_management;
 use gpui::{App, AppContext, Context, DismissEvent, Focusable, Window};
 
 use crate::actions::*;
-use ui_common::menu::{AboutApp, Preferences, Settings, ShowDocumentation};
+use ui::ContextModal;
+use ui_common::menu::{AboutApp, NewBlueprint, Preferences, Settings, ShowDocumentation};
+use ui_file_manager::drawer::{FileOperations, RefreshFileManager};
+use ui::notification::Notification;
 
 /// Main Pulsar application
 pub struct PulsarApp {
@@ -76,6 +79,46 @@ impl PulsarApp {
 
     fn on_open_file(&mut self, action: &OpenFile, window: &mut Window, cx: &mut Context<Self>) {
         self.open_path(action.path.clone(), window, cx);
+    }
+
+    fn on_new_blueprint(
+        &mut self,
+        _: &NewBlueprint,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(ref project_root) = self.state.project_path else {
+            window.push_notification(
+                Notification::warning("No project open")
+                    .message("Open or create a project first, then try File → New → Blueprint again."),
+                cx,
+            );
+            return;
+        };
+
+        let base = project_root.join("blueprints").join("classes");
+        match FileOperations::new_blueprint_graph_class_folder(&base, None) {
+            Ok(path) => {
+                self.open_path(path.clone(), window, cx);
+                window.dispatch_action(Box::new(RefreshFileManager), cx);
+                window.push_notification(
+                    Notification::info("New blueprint").message(format!(
+                        "Created {}",
+                        path.file_name()
+                            .map(|n| n.to_string_lossy().into_owned())
+                            .unwrap_or_else(|| path.display().to_string())
+                    )),
+                    cx,
+                );
+            }
+            Err(e) => {
+                tracing::error!("File → New → Blueprint failed: {:#}", e);
+                window.push_notification(
+                    Notification::error("Could not create blueprint").message(e.to_string()),
+                    cx,
+                );
+            }
+        }
     }
 
     fn on_open_settings(

@@ -642,6 +642,7 @@ impl Render for PulsarApp {
             .on_action(cx.listener(Self::on_toggle_flamegraph))
             .on_action(cx.listener(Self::on_toggle_command_palette))
             .on_action(cx.listener(Self::on_open_file))
+            .on_action(cx.listener(Self::on_new_blueprint))
             .on_action(cx.listener(Self::on_open_settings))
             .on_action(cx.listener(Self::on_open_settings_menu))
             .on_action(cx.listener(Self::on_open_preferences))

@@ -129,19 +129,28 @@ impl FileOperations {
             );
         }
 
-        // Fallback: manual creation
+        Self::new_blueprint_graph_class_folder(base_path, name)
+    }
+
+    /// Blueprint editor asset: a directory containing `graph_save.json` (and `events/`).
+    ///
+    /// This is what [`plugin_manager`] opens for the visual blueprint editor. It is **not**
+    /// the same as [`engine_fs::AssetKind::BlueprintClass`] (a `.bpclass.json` file).
+    pub fn new_blueprint_graph_class_folder(base_path: &Path, name: Option<&str>) -> Result<PathBuf> {
+        if !fs_exists(base_path) {
+            fs_mkdir(base_path)?;
+        }
+
         let mut counter = 1;
         let mut new_path = base_path.join(name.unwrap_or("NewClass"));
 
-        while new_path.exists() {
+        while fs_exists(&new_path) {
             new_path = base_path.join(format!("NewClass{}", counter));
             counter += 1;
         }
 
-        // Create class folder and events subfolder
         fs_mkdir(&new_path.join("events"))?;
 
-        // Create graph_save.json with template
         let now = chrono::Local::now();
         let version = ui::ENGINE_VERSION;
         let header = format!(
