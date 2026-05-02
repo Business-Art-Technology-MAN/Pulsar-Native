@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use ui::notification::Notification;
 use ui::{
-    button::{Button, ButtonVariants as _},
+    button::{Button, ButtonCustomVariant, ButtonVariants as _},
     h_flex, v_flex, ActiveTheme as _, ContextModal as _, Icon, IconName, StyledExt as _,
 };
 
@@ -345,7 +345,13 @@ impl PulsarApp {
                                     .when(is_running, |this| {
                                         this.child(
                                             Button::new("analyzer-stop")
-                                                .ghost()
+                                                .custom(
+                                                    ButtonCustomVariant::new(cx)
+                                                        .color(cx.theme().transparent)
+                                                        .foreground(cx.theme().muted_foreground)
+                                                        .border(cx.theme().transparent)
+                                                        .hover(cx.theme().danger.opacity(0.2)),
+                                                )
                                                 .icon(
                                                     Icon::new(IconName::Close)
                                                         .size(px(12.))
@@ -353,7 +359,6 @@ impl PulsarApp {
                                                 )
                                                 .p_1()
                                                 .rounded(px(3.))
-                                                .hover(|s| s.bg(cx.theme().danger.opacity(0.2)))
                                                 .tooltip(t!("StatusBar.Stop").to_string())
                                                 .on_click(cx.listener(|app, _, window, cx| {
                                                     app.state.rust_analyzer.update(
