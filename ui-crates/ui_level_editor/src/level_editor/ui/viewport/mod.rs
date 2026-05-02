@@ -22,6 +22,7 @@ use std::sync::{Arc, Mutex};
 
 use device_query::{DeviceQuery, DeviceState, Keycode};
 use engine_backend::GameThread;
+use gpui::prelude::FluentBuilder;
 use gpui::*;
 use helio_viewport::HelioViewport;
 use ui::Sizable;
@@ -484,10 +485,14 @@ impl ViewportPanel {
         let gpu_engine_move = gpu_engine.clone();
         let last_mouse_pos = Rc::new(RefCell::new(None::<(f32, f32)>));
 
+        let hide_viewport_cursor = mouse_right_captured.load(Ordering::Acquire)
+            || mouse_middle_captured.load(Ordering::Acquire);
+
         // Main viewport container
         div()
             .size_full()
             .relative()
+            .when(hide_viewport_cursor, |d| d.cursor(CursorStyle::None))
             // TRANSPARENT - no background for direct Helio rendering
             .rounded(cx.theme().radius)
             // CRITICAL: Capture element bounds and update Helio camera viewport
@@ -537,7 +542,7 @@ impl ViewportPanel {
                 let mouse_middle_captured = mouse_middle_captured.clone();
                 let state_arc_move = state_arc.clone();
 
-                move |event, window, _cx| {
+                move |event, _window, _cx| {
                     let is_rotating = mouse_right_captured.load(Ordering::Acquire);
                     let is_panning = mouse_middle_captured.load(Ordering::Acquire);
 
@@ -556,8 +561,6 @@ impl ViewportPanel {
                             input_state_clone.mouse_x.store(x, Ordering::Relaxed);
                             input_state_clone.mouse_y.store(y, Ordering::Relaxed);
                         }
-
-                        window.set_window_cursor_style(CursorStyle::None);
                     } else {
                         let pos_x: f32 = event.position.x.into();
                         let pos_y: f32 = event.position.y.into();
@@ -665,7 +668,7 @@ impl ViewportPanel {
                 let locked_cursor_screen_y = locked_cursor_screen_y.clone();
                 let input_state_clone = self.input_state.clone();
 
-                move |event, window, _cx| {
+                move |event, window, cx| {
                     let shift_pressed = event.modifiers.shift;
                     let window_x: f32 = event.position.x.into();
                     let window_y: f32 = event.position.y.into();
@@ -692,7 +695,7 @@ impl ViewportPanel {
                     }
 
                     crate::level_editor::ui::viewport::platform::hide_cursor();
-                    window.set_window_cursor_style(CursorStyle::None);
+                    cx.refresh_windows();
                 }
             })
             // Right-click release
@@ -702,15 +705,15 @@ impl ViewportPanel {
                 let locked_cursor_screen_x = locked_cursor_screen_x.clone();
                 let locked_cursor_screen_y = locked_cursor_screen_y.clone();
 
-                move |_event, window, _cx| {
+                move |_event, _window, cx| {
                     mouse_right_captured.store(false, Ordering::Release);
                     mouse_middle_captured.store(false, Ordering::Release);
                     locked_cursor_screen_x.store(0, Ordering::Relaxed);
                     locked_cursor_screen_y.store(0, Ordering::Relaxed);
 
                     crate::level_editor::ui::viewport::platform::show_cursor();
-                    window.set_window_cursor_style(CursorStyle::Arrow);
                     crate::level_editor::ui::viewport::platform::unlock_cursor();
+                    cx.refresh_windows();
                 }
             })
             // Scroll wheel for camera speed adjustment
